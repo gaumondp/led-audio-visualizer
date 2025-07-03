@@ -126,6 +126,19 @@ The `scroll_in` effect is like the scroll effect BUT the lights start from the o
 
 The `scroll_quad` effect is like the scroll effect but it has two midpoints where the lights start and spread out. It looks like you have two mini LED strips in one. 
 
+A new visualization type `cycle` has been added. This mode will automatically cycle through all the available visualization effects (`spectrum`, `energy`, `scroll`, `scroll_in`, `scroll_quad`) at random.
+By default, each visualization will run for 120 seconds before switching to a new one. You can customize this duration by providing an additional argument in seconds.
+
+For example, to use the `cycle` mode with the default 120-second duration:
+```shell
+sudo python3 visualization.py cycle
+```
+
+To use the `cycle` mode and have each visualization run for 60 seconds:
+```shell
+sudo python3 visualization.py cycle 60
+```
+
 ### `off.py` was added to the package
 
 Contains python code to turn off all the LEDs after the off command was sent. 
