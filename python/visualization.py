@@ -8,9 +8,17 @@ import microphone
 import dsp
 import led
 import sys
+import random
 
-visualization_type = sys.argv[1]
-scroll_divisor_config = 4 if sys.argv[1] == "scroll_quad" else 2
+visualization_type_arg = sys.argv[1]
+cycle_duration_seconds = config.CYCLE_TIME_SECONDS
+if len(sys.argv) > 2 and visualization_type_arg == "cycle":
+    try:
+        cycle_duration_seconds = int(sys.argv[2])
+    except ValueError:
+        print("Invalid cycle duration provided. Using default value.")
+
+scroll_divisor_config = 4 if visualization_type_arg == "scroll_quad" else 2
 
 _time_prev = time.time() * 1000.0
 """The previous time that the frames_per_second() function was called"""
@@ -305,21 +313,55 @@ samples_per_frame = int(config.MIC_RATE / config.FPS)
 # Array containing the rolling audio sample window
 y_roll = np.random.rand(config.N_ROLLING_HISTORY, samples_per_frame) / 1e16
 
-if sys.argv[1] == "spectrum":
-        visualization_type = visualize_spectrum
-elif sys.argv[1] == "energy":
-        visualization_type = visualize_energy
-elif sys.argv[1] == "scroll":
-        visualization_type = visualize_scroll
-elif sys.argv[1] == "scroll_in":
-        visualization_type = visualize_scroll_in
-elif sys.argv[1] == "scroll_quad":
-        visualization_type = visualize_scroll_quad
-else:
-        visualization_type = visualize_spectrum
+AVAILABLE_VISUALIZATIONS = [
+    visualize_spectrum,
+    visualize_energy,
+    visualize_scroll,
+    visualize_scroll_in,
+    visualize_scroll_quad,
+]
 
-visualization_effect = visualization_type
-"""Visualization effect to display on the LED strip"""
+current_visualization_index = 0
+last_cycle_time = time.time()
+
+def visualize_cycle(y):
+    """Cycles through the available visualization effects."""
+    global current_visualization_index, last_cycle_time, visualization_effect
+
+    now = time.time()
+    if (now - last_cycle_time) > cycle_duration_seconds:
+        current_visualization_index = random.randrange(len(AVAILABLE_VISUALIZATIONS))
+        visualization_effect = AVAILABLE_VISUALIZATIONS[current_visualization_index]
+        last_cycle_time = now
+        print("Changing visualization to:", visualization_effect.__name__)
+
+    # For the first run, visualization_effect might still be visualize_cycle
+    # so we need to explicitly set it to the first effect.
+    if visualization_effect == visualize_cycle:
+        visualization_effect = AVAILABLE_VISUALIZATIONS[current_visualization_index]
+        print("Starting visualization with:", visualization_effect.__name__)
+
+
+    return visualization_effect(y)
+
+
+if visualization_type_arg == "spectrum":
+    visualization_effect = visualize_spectrum
+elif visualization_type_arg == "energy":
+    visualization_effect = visualize_energy
+elif visualization_type_arg == "scroll":
+    visualization_effect = visualize_scroll
+elif visualization_type_arg == "scroll_in":
+    visualization_effect = visualize_scroll_in
+elif visualization_type_arg == "scroll_quad":
+    visualization_effect = visualize_scroll_quad
+elif visualization_type_arg == "cycle":
+    visualization_effect = visualize_cycle  # This will be immediately replaced by the first effect in visualize_cycle
+    # Initialize first effect for cycle mode
+    current_visualization_index = random.randrange(len(AVAILABLE_VISUALIZATIONS))
+    # The actual assignment to visualization_effect is handled within visualize_cycle first call
+else:
+    visualization_effect = visualize_spectrum
 
 
 if __name__ == '__main__':

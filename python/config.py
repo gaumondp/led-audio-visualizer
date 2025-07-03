@@ -103,3 +103,6 @@ N_ROLLING_HISTORY = 2
 
 MIN_VOLUME_THRESHOLD = 1e-7
 """No music visualization displayed if recorded audio volume below threshold"""
+
+CYCLE_TIME_SECONDS = 120
+"""Default time in seconds for each visualization effect in 'cycle' mode"""
